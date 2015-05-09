@@ -1,26 +1,34 @@
+#![feature(str_char)]
 //! A simple, stupid, unoptimized version of the Ordered Jobs Kata.
 //! (Re)learning Rust at the same time. Back in my days we had ~["vectors", "like", "this"].
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct Job {
-    name: char
+    name: char,
+    dependency: Option<char>
 }
 
 impl Job {
     // XXX: Is this useful?
-    pub fn new(name: char) -> Job {
+    pub fn new(name: char, dependency: Option<char>) -> Job {
         Job {
-            name: name
+            name: name,
+            dependency: dependency
         }
     }
 
     pub fn fromSpec(spec: &str) -> Job {
-        let splits: Vec<&str> = spec
+        let splits: Vec<char> = spec
             .splitn(2, "=>")
             .map(str::trim)
             .filter(|s| !s.is_empty())
+            .map(|s| s.char_at(0))  // Generally unsafe but logically guarded by above stmt
             .collect();
-        Job::new('a')
+        match splits.len() {
+            1 => Job::new(splits[0], None),
+            2 => Job::new(splits[0], Some(splits[1])),
+            _ => panic!(format!("Invalid Job spec format: {}", spec))
+        }
     }
 }
 
@@ -42,7 +50,9 @@ fn main() {
 
 fn run(input: &str) -> Option<Vec<char>> {
     let mut jl = JobList::new();
-    let jobs = input.lines().map(Job::fromSpec);
+    let jobs: Vec<Job> = input.lines().map(Job::fromSpec).collect();
+
+    println!("Jobs: {:?}", jobs);
 
     // To make it compile for now
     let mut vec = Vec::new();
