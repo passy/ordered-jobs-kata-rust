@@ -1,0 +1,4 @@
+[package]
+name = "ordered-jobs-kata"
+version = "0.1.0"
+authors = ["Pascal Hartig <phartig@twitter.com>"]
