@@ -13,6 +13,15 @@ impl Job {
             name: name
         }
     }
+
+    pub fn fromSpec(spec: &str) -> Job {
+        let splits: Vec<&str> = spec
+            .splitn(2, "=>")
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .collect();
+        Job::new('a')
+    }
 }
 
 pub struct JobList {
@@ -32,6 +41,10 @@ fn main() {
 }
 
 fn run(input: &str) -> Option<Vec<char>> {
+    let mut jl = JobList::new();
+    let jobs = input.lines().map(Job::fromSpec);
+
+    // To make it compile for now
     let mut vec = Vec::new();
     vec.push('a');
     Some(vec)
