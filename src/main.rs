@@ -1,3 +1,32 @@
+//! A simple, stupid, unoptimized version of the Ordered Jobs Kata.
+//! (Re)learning Rust at the same time. Back in my days we had ~["vectors", "like", "this"].
+
+#[derive(PartialEq, Eq)]
+pub struct Job {
+    name: char
+}
+
+impl Job {
+    // XXX: Is this useful?
+    pub fn new(name: char) -> Job {
+        Job {
+            name: name
+        }
+    }
+}
+
+pub struct JobList {
+    jobs: Vec<Job>
+}
+
+impl JobList {
+    pub fn new() -> JobList {
+        JobList {
+            jobs: Vec::new()
+        }
+    }
+}
+
 fn main() {
     println!("Hello, world!");
 }
