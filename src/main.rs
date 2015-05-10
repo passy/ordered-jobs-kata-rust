@@ -40,23 +40,23 @@ fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     if (!jobs.contains(job)) {
         jobs.push(job.clone());
     }
-    jobs
+    jobs.clone()
 }
 
-fn add_job_before<'a>(new_job: &Job, other_job: &Job, mut jobs: &'a Vec<Job>) -> &'a Vec<Job> {
+fn add_job_before<'a>(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     if let Some(i) = jobs.position_elem(other_job) {
         jobs.insert(i, new_job.clone());
     }
-    jobs
+    jobs.clone()
 }
 
-fn add_dep(job: &Job, dep: &char, mut jobs: &Vec<Job>) -> Result<Vec<Job>, &'static str> {
+fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
     if (job.name == *dep) {
         Err("Dependency on self")
-    } else if (jobs.contains(job) && job_name_exists(dep, jobs)) {
+    } else if (jobs.contains(job) && job_name_exists(dep, &jobs)) {
         Err("Circular job dependency")
     } else if (jobs.contains(job)) {
-        Ok(*add_job_before(&Job::new(*dep, None), job, jobs))
+        Ok(add_job_before(&Job::new(*dep, None), job, jobs))
     } else {
         // Hmmm, composition anyone?
         jobs = add_job(&Job::new(*dep, None), jobs);
@@ -81,8 +81,8 @@ impl JobList {
         for job in input.iter() {
             match job.dependency {
                 // XXX: URGH! No unwrap!
-                Some(dep) => jobs = add_dep(&(*job), &dep, &jobs).unwrap(),
-                None      => jobs = add_job(&(*job), &jobs)
+                Some(dep) => jobs = add_dep(&(*job), &dep, jobs).unwrap(),
+                None      => jobs = add_job(&(*job), jobs)
             }
         }
 
