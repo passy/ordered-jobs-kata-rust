@@ -1,8 +1,9 @@
 #![feature(str_char)]
+#![feature(collections)]
 //! A simple, stupid, unoptimized version of the Ordered Jobs Kata.
 //! (Re)learning Rust at the same time. Back in my days we had ~["vectors", "like", "this"].
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Job {
     name: char,
     dependency: Option<char>
@@ -17,7 +18,7 @@ impl Job {
         }
     }
 
-    pub fn fromSpec(spec: &str) -> Job {
+    pub fn from_spec(spec: &str) -> Job {
         let splits: Vec<char> = spec
             .splitn(2, "=>")
             .map(str::trim)
@@ -36,10 +37,46 @@ pub struct JobList {
     jobs: Vec<Job>
 }
 
+fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+    if (!jobs.contains(job)) {
+        jobs.push(job.clone());
+    }
+    jobs
+}
+
+fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+    if let Some(i) = jobs.position_elem(other_job) {
+        jobs.insert(i, new_job.clone());
+    }
+    jobs
+}
+
 impl JobList {
-    pub fn new() -> JobList {
-        JobList {
-            jobs: Vec::new()
+    pub fn from_jobs(input: Vec<Job>) -> JobList {
+        let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
+
+        // Boo... Let's refactor this, okay?
+        for job in input.iter() {
+            if (job.dependency.is_none()) {
+                jobs = add_job(&(*job), jobs);
+            }
+        }
+
+        JobList { jobs: input }
+    }
+
+    fn add_dep(job: &Job, dep: &Job, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
+        if (job.name == dep.name) {
+            Err("Dependency on self")
+        } else if (jobs.contains(job) && jobs.contains(dep)) {
+            Err("Circular job dependency")
+        } else if (jobs.contains(job)) {
+            Ok(add_job_before(dep, job, jobs))
+        } else {
+            // Hmmm, composition anyone?
+            jobs = add_job(dep, jobs);
+            jobs = add_job(job, jobs);
+            Ok(jobs)
         }
     }
 }
@@ -49,10 +86,9 @@ fn main() {
 }
 
 fn run(input: &str) -> Option<Vec<char>> {
-    let mut jl = JobList::new();
-    let jobs: Vec<Job> = input.lines().map(Job::fromSpec).collect();
-
+    let jobs: Vec<Job> = input.lines().map(Job::from_spec).collect();
     println!("Jobs: {:?}", jobs);
+    let jl: JobList = JobList::from_jobs(jobs);
 
     // To make it compile for now
     let mut vec = Vec::new();
