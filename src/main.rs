@@ -3,6 +3,9 @@
 //! A simple, stupid, unoptimized version of the Ordered Jobs Kata.
 //! (Re)learning Rust at the same time. Back in my days we had ~["vectors", "like", "this"].
 
+// TODO: For functions operating on collections, make the collection the first (self-like) arg.
+// TODO: The split between dep and job is iffy. #unify
+
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Job {
     name: char,
@@ -33,10 +36,6 @@ impl Job {
     }
 }
 
-pub struct JobList {
-    jobs: Vec<Job>
-}
-
 fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     if (!jobs.contains(job)) {
         jobs.push(job.clone());
@@ -44,11 +43,34 @@ fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     jobs
 }
 
-fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+fn add_job_before<'a>(new_job: &Job, other_job: &Job, mut jobs: &'a Vec<Job>) -> &'a Vec<Job> {
     if let Some(i) = jobs.position_elem(other_job) {
         jobs.insert(i, new_job.clone());
     }
     jobs
+}
+
+fn add_dep(job: &Job, dep: &char, mut jobs: &Vec<Job>) -> Result<Vec<Job>, &'static str> {
+    if (job.name == *dep) {
+        Err("Dependency on self")
+    } else if (jobs.contains(job) && job_name_exists(dep, jobs)) {
+        Err("Circular job dependency")
+    } else if (jobs.contains(job)) {
+        Ok(*add_job_before(&Job::new(*dep, None), job, jobs))
+    } else {
+        // Hmmm, composition anyone?
+        jobs = add_job(&Job::new(*dep, None), jobs);
+        jobs = add_job(job, jobs);
+        Ok(jobs)
+    }
+}
+
+fn job_name_exists(name: &char, jobs: &Vec<Job>) -> bool {
+    jobs.iter().any(|s| s.name == *name)
+}
+
+pub struct JobList {
+    jobs: Vec<Job>
 }
 
 impl JobList {
@@ -59,27 +81,12 @@ impl JobList {
         for job in input.iter() {
             match job.dependency {
                 // XXX: URGH! No unwrap!
-                Some(dep) => jobs = JobList::add_dep(&(*job), dep, jobs).unwrap(),
-                None      => jobs = add_job(&(*job), jobs)
+                Some(dep) => jobs = add_dep(&(*job), &dep, &jobs).unwrap(),
+                None      => jobs = add_job(&(*job), &jobs)
             }
         }
 
         JobList { jobs: input }
-    }
-
-    fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
-        if (job.name == dep) {
-            Err("Dependency on self")
-        } else if (jobs.contains(job) && jobs.contains(dep)) {
-            Err("Circular job dependency")
-        } else if (jobs.contains(job)) {
-            Ok(add_job_before(dep, job, jobs))
-        } else {
-            // Hmmm, composition anyone?
-            jobs = add_job(dep, jobs);
-            jobs = add_job(job, jobs);
-            Ok(jobs)
-        }
     }
 }
 
