@@ -57,16 +57,18 @@ impl JobList {
 
         // Boo... Let's refactor this, okay?
         for job in input.iter() {
-            if (job.dependency.is_none()) {
-                jobs = add_job(&(*job), jobs);
+            match job.dependency {
+                // XXX: URGH! No unwrap!
+                Some(dep) => jobs = JobList::add_dep(&(*job), dep, jobs).unwrap(),
+                None      => jobs = add_job(&(*job), jobs)
             }
         }
 
         JobList { jobs: input }
     }
 
-    fn add_dep(job: &Job, dep: &Job, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
-        if (job.name == dep.name) {
+    fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
+        if (job.name == dep) {
             Err("Dependency on self")
         } else if (jobs.contains(job) && jobs.contains(dep)) {
             Err("Circular job dependency")
