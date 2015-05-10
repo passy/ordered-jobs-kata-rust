@@ -100,10 +100,8 @@ fn run(input: &str) -> Option<Vec<char>> {
     println!("Jobs: {:?}", jobs);
     let jl: JobList = JobList::from_jobs(jobs);
 
-    // To make it compile for now
-    let mut vec = Vec::new();
-    vec.push('a');
-    Some(vec)
+    // TODO: Turn the unwrap from above into a None, or return a Result from here.
+    Some(jl.jobs.iter().map(|j| j.name).collect())
 }
 
 #[test]
