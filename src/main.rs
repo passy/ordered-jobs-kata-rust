@@ -5,6 +5,7 @@
 
 // TODO: For functions operating on collections, make the collection the first (self-like) arg.
 // TODO: The split between dep and job is iffy. #unify
+// TODO: Organize in either "objects" (nah) or modules (yay)
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Job {
