@@ -44,7 +44,7 @@ fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     jobs.clone()
 }
 
-fn add_job_before<'a>(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     if let Some(i) = jobs.position_elem(other_job) {
         jobs.insert(i, new_job.clone());
     }
@@ -75,19 +75,20 @@ pub struct JobList {
 }
 
 impl JobList {
-    pub fn from_jobs(input: Vec<Job>) -> JobList {
+    pub fn from_jobs(input: Vec<Job>) -> Result<Vec<JobList>, &'static str> {
         let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
 
         // Boo... Let's refactor this, okay?
         for job in input.iter() {
             match job.dependency {
-                // XXX: URGH! No unwrap!
+                // XXX: Don't unwrap!
                 Some(dep) => jobs = add_dep(&(*job), &dep, jobs).unwrap(),
                 None      => jobs = add_job(&(*job), jobs)
             }
         }
 
-        JobList { jobs: input }
+        // XXX: Depend on add_dep/add_job values.
+        Ok(JobList { jobs: input })
     }
 }
 
