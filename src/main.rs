@@ -75,10 +75,10 @@ pub struct JobList {
 }
 
 impl JobList {
-    pub fn from_jobs(input: Vec<Job>) -> Result<Vec<JobList>, &'static str> {
+    pub fn from_jobs(input: Vec<Job>) -> Result<JobList, &'static str> {
         let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
 
-        // Boo... Let's refactor this, okay?
+        // This is just a fold, no need for the iffy imperative monstrosity.
         for job in input.iter() {
             match job.dependency {
                 // XXX: Don't unwrap!
@@ -88,7 +88,7 @@ impl JobList {
         }
 
         // XXX: Depend on add_dep/add_job values.
-        Ok(JobList { jobs: input })
+        Ok(JobList { jobs: jobs })
     }
 }
 
@@ -99,10 +99,10 @@ fn main() {
 fn run(input: &str) -> Option<Vec<char>> {
     let jobs: Vec<Job> = input.lines().map(Job::from_spec).collect();
     println!("Jobs: {:?}", jobs);
-    let jl: JobList = JobList::from_jobs(jobs);
+    let jl: Result<JobList, &'static str> = JobList::from_jobs(jobs);
 
     // TODO: Turn the unwrap from above into a None, or return a Result from here.
-    Some(jl.jobs.iter().map(|j| j.name).collect())
+    Some(jl.unwrap().jobs.iter().map(|j| j.name).collect())
 }
 
 #[test]
