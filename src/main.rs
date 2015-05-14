@@ -78,7 +78,7 @@ impl JobList {
     pub fn from_jobs(input: Vec<Job>) -> Result<JobList, &'static str> {
         let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
 
-        // This is just a fold, no need for the iffy imperative monstrosity.
+        // TODO: this is a bind >>=
         let res = input.iter().fold(Ok(jobs), |acc, ref job| {
             match acc {
                 Err(_)   => acc,
