@@ -103,8 +103,7 @@ fn run(input: &str) -> Result<Vec<char>, &'static str> {
     println!("Jobs: {:?}", jobs);
     let jl: Result<JobList, &'static str> = JobList::from_jobs(jobs);
 
-    // TODO: Turn the unwrap from above into a None, or return a Result from here.
-    Ok(jl.unwrap().jobs.iter().map(|j| j.name).collect())
+    jl.map(|j| j.jobs.iter().map(|j| j.name).collect())
 }
 
 #[test]
