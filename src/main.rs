@@ -21,7 +21,6 @@ impl PartialEq for Job {
 }
 
 impl Job {
-    // XXX: Is this useful?
     pub fn new(name: char, dependency: Option<char>) -> Job {
         Job {
             name: name,
@@ -44,13 +43,6 @@ impl Job {
     }
 }
 
-fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
-    if !jobs.contains(job) {
-        jobs.push(job.clone());
-    }
-    jobs.clone()
-}
-
 fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     // This depends on our PartialEq checking only names, not deps - which doesn't feel quite
     // right.
@@ -60,18 +52,30 @@ fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job
     jobs.clone()
 }
 
-fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
-    if job.name == *dep {
-        Err("Dependency on self")
-    } else if job_name_exists(&job.name, &jobs) && job_name_exists(dep, &jobs) {
-        Err("Circular job dependency")
-    } else if job_name_exists(&job.name, &jobs) {
-        Ok(add_job_before(&Job::new(*dep, None), job, jobs))
-    } else {
-        // Hmmm, composition anyone?
-        jobs = add_job(&Job::new(*dep, None), jobs);
-        jobs = add_job(job, jobs);
-        Ok(jobs)
+fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+    if !jobs.contains(job) {
+        jobs.push(job.clone());
+    }
+    jobs.clone()
+}
+
+fn add_dep(job: &Job, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
+    match job.dependency {
+        None      => Ok(add_job(job, jobs)),
+        Some(dep) => {
+            if job.name == dep {
+                Err("Dependency on self")
+            } else if job_name_exists(&job.name, &jobs) && job_name_exists(&dep, &jobs) {
+                Err("Circular job dependency")
+            } else if job_name_exists(&dep, &jobs) {
+                Ok(add_job_before(&Job::new(dep, None), job, jobs))
+            } else {
+                // Hmmm, composition anyone?
+                jobs = add_job(&Job::new(dep, None), jobs);
+                jobs = add_job(job, jobs);
+                Ok(jobs)
+            }
+        }
     }
 }
 
@@ -88,12 +92,7 @@ impl JobList {
         let jobs: Vec<Job> = Vec::with_capacity(input.len());
 
         let res = input.iter().fold(Ok(jobs), |acc, ref job| {
-            acc.and_then(|jobs| {
-                match job.dependency {
-                    Some(dep) => add_dep(&job, &dep, jobs),
-                    None      => Ok(add_job(&job, jobs))
-                }
-            })
+            acc.and_then(|j| add_dep(&job, j))
         });
 
         res.map(|r| JobList { jobs: r })
