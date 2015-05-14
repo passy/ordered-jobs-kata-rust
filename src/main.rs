@@ -45,7 +45,7 @@ impl Job {
 }
 
 fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
-    if (!jobs.contains(job)) {
+    if !jobs.contains(job) {
         jobs.push(job.clone());
     }
     jobs.clone()
@@ -61,11 +61,11 @@ fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job
 }
 
 fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
-    if (job.name == *dep) {
+    if job.name == *dep {
         Err("Dependency on self")
-    } else if (job_name_exists(&job.name, &jobs) && job_name_exists(dep, &jobs)) {
+    } else if job_name_exists(&job.name, &jobs) && job_name_exists(dep, &jobs) {
         Err("Circular job dependency")
-    } else if (job_name_exists(&job.name, &jobs)) {
+    } else if job_name_exists(&job.name, &jobs) {
         Ok(add_job_before(&Job::new(*dep, None), job, jobs))
     } else {
         // Hmmm, composition anyone?
@@ -85,7 +85,7 @@ pub struct JobList {
 
 impl JobList {
     pub fn from_jobs(input: Vec<Job>) -> Result<JobList, &'static str> {
-        let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
+        let jobs: Vec<Job> = Vec::with_capacity(input.len());
 
         let res = input.iter().fold(Ok(jobs), |acc, ref job| {
             acc.and_then(|jobs| {
