@@ -79,12 +79,12 @@ impl JobList {
         let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
 
         // This is just a fold, no need for the iffy imperative monstrosity.
-        let res = input.iter().fold(Ok(jobs), |acc, &job| {
+        let res = input.iter().fold(Ok(jobs), |acc, ref job| {
             match acc {
                 Err(_)   => acc,
                 Ok(jobs) => match job.dependency {
-                                Some(dep) => add_dep(&(*job), &dep, jobs),
-                                None      => Ok(add_job(&(*job), jobs))
+                                Some(dep) => add_dep(&job, &dep, jobs),
+                                None      => Ok(add_job(&job, jobs))
                             }
             }
         });
