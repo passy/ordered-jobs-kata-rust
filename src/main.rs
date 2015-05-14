@@ -6,11 +6,18 @@
 // TODO: For functions operating on collections, make the collection the first (self-like) arg.
 // TODO: The split between dep and job is iffy. #unify
 // TODO: Organize in either "objects" (nah) or modules (yay)
+// TODO: There's a lot of cloning going on. While "function", a lot of it is unnecessary.
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct Job {
     name: char,
     dependency: Option<char>
+}
+
+impl PartialEq for Job {
+    fn eq(&self, other: &Job) -> bool {
+        self.name == other.name
+    }
 }
 
 impl Job {
@@ -38,6 +45,7 @@ impl Job {
 }
 
 fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+    println!("add_job: job: {:?}, jobs: {:?}, contains: {:?}", &job, &jobs, jobs.contains(job));
     if (!jobs.contains(job)) {
         jobs.push(job.clone());
     }
@@ -45,6 +53,8 @@ fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
 }
 
 fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+    // This depends on our PartialEq checking only names, not deps - which doesn't feel quite
+    // right.
     if let Some(i) = jobs.position_elem(other_job) {
         jobs.insert(i, new_job.clone());
     }
@@ -133,7 +143,7 @@ fn test_multiple_jobs_single_dep() {
     let res = run("a =>\
                  \nb => c\
                  \nc =>");
-    assert_eq!(res.unwrap(), vec!['a', 'b', 'c'])
+    assert_eq!(res.unwrap(), vec!['a', 'c', 'b'])
 }
 
 #[test]
