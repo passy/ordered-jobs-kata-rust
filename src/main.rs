@@ -44,20 +44,21 @@ fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     jobs.clone()
 }
 
-fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+fn add_job_before(new_job: Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
     if let Some(i) = jobs.position_elem(other_job) {
-        jobs.insert(i, new_job.clone());
+        jobs.insert(i, new_job);
     }
     jobs.clone()
 }
 
 fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
+    println!("add_dep: job: {:?}, dep: {:?}, jobs: {:?}", &job, &dep, &jobs);
     if (job.name == *dep) {
         Err("Dependency on self")
-    } else if (jobs.contains(job) && job_name_exists(dep, &jobs)) {
+    } else if (job_name_exists(&job.name, &jobs) && job_name_exists(dep, &jobs)) {
         Err("Circular job dependency")
-    } else if (jobs.contains(job)) {
-        Ok(add_job_before(&Job::new(*dep, None), job, jobs))
+    } else if (job_name_exists(&job.name, &jobs)) {
+        Ok(add_job_before(Job::new(*dep, None), job, jobs))
     } else {
         // Hmmm, composition anyone?
         jobs = add_job(&Job::new(*dep, None), jobs);
@@ -154,7 +155,15 @@ fn test_jobs_cannot_depend_on_themselves() {
 }
 
 #[test]
-fn test_jobs_cannot_have_circular_dependencies() {
+fn test_jobs_cannot_have_simple_circular_dependencies() {
+    let res = run("a => b\
+                 \nb => a");
+    //assert!(res.is_err())
+    assert_eq!(res.unwrap(), vec![]);
+}
+
+#[test]
+fn test_jobs_cannot_have_complex_circular_dependencies() {
     let res = run("a =>\
                  \nb => c\
                  \nc => f\
