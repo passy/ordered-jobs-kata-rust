@@ -32,7 +32,7 @@ impl Job {
         match splits.len() {
             1 => Job::new(splits[0], None),
             2 => Job::new(splits[0], Some(splits[1])),
-            _ => panic!(format!("Invalid Job spec format: {}", spec))
+            _ => panic!(format!("Invalid Job spec format: {:?}", spec))
         }
     }
 }
