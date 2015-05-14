@@ -87,18 +87,15 @@ impl JobList {
     pub fn from_jobs(input: Vec<Job>) -> Result<JobList, &'static str> {
         let mut jobs: Vec<Job> = Vec::with_capacity(input.len());
 
-        // TODO: this is a bind >>=
         let res = input.iter().fold(Ok(jobs), |acc, ref job| {
-            match acc {
-                Err(_)   => acc,
-                Ok(jobs) => match job.dependency {
-                                Some(dep) => add_dep(&job, &dep, jobs),
-                                None      => Ok(add_job(&job, jobs))
-                            }
-            }
+            acc.and_then(|jobs| {
+                match job.dependency {
+                    Some(dep) => add_dep(&job, &dep, jobs),
+                    None      => Ok(add_job(&job, jobs))
+                }
+            })
         });
 
-        // XXX: Depend on add_dep/add_job values.
         res.map(|r| JobList { jobs: r })
     }
 }
