@@ -159,7 +159,7 @@ fn test_jobs_cannot_have_circular_dependencies() {
                  \nb => c\
                  \nc => f\
                  \nd => a\
-                 \ne =>
+                 \ne =>\
                  \nf => b");
     assert!(res.is_err())
 }
