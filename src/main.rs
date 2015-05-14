@@ -98,13 +98,13 @@ fn main() {
     println!("Hello, world!");
 }
 
-fn run(input: &str) -> Option<Vec<char>> {
+fn run(input: &str) -> Result<Vec<char>, &'static str> {
     let jobs: Vec<Job> = input.lines().map(Job::from_spec).collect();
     println!("Jobs: {:?}", jobs);
     let jl: Result<JobList, &'static str> = JobList::from_jobs(jobs);
 
     // TODO: Turn the unwrap from above into a None, or return a Result from here.
-    Some(jl.unwrap().jobs.iter().map(|j| j.name).collect())
+    Ok(jl.unwrap().jobs.iter().map(|j| j.name).collect())
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn test_jobs_cannot_depend_on_themselves() {
     let res = run("a =>\
                  \nb =>\
                  \nc => c");
-    assert!(res.is_none())
+    assert!(res.is_err())
 }
 
 #[test]
@@ -162,5 +162,5 @@ fn test_jobs_cannot_have_circular_dependencies() {
                  \nd => a\
                  \ne =>
                  \nf => b");
-    assert!(res.is_none())
+    assert!(res.is_err())
 }
