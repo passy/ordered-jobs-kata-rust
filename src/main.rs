@@ -58,7 +58,7 @@ fn add_job_before(jobs: Vec<Job>, new_job: &Job, other_job: &Job) -> Vec<Job> {
     new_jobs
 }
 
-fn add_dep(mut jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'static str> {
+fn add_dep(jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'static str> {
     if job.name == *dep {
         Err("Dependency on self")
     } else if job_name_exists(&jobs, &job.name) && job_name_exists(&jobs, dep) {
@@ -67,9 +67,9 @@ fn add_dep(mut jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'stat
         Ok(add_job_before(jobs, &Job::new(*dep, None), job))
     } else {
         // Hmmm, composition anyone?
-        jobs = add_job(jobs, &Job::new(*dep, None));
-        jobs = add_job(jobs, &job);
-        Ok(jobs)
+        let mut jobs_new = add_job(jobs, &Job::new(*dep, None));
+        jobs_new = add_job(jobs_new, &job);
+        Ok(jobs_new)
     }
 }
 
