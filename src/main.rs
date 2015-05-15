@@ -3,9 +3,8 @@
 //! A simple, stupid, unoptimized version of the Ordered Jobs Kata.
 //! (Re)learning Rust at the same time. Back in my days we had ~["vectors", "like", "this"].
 
-// TODO: The split between dep and job is iffy. #unify
 // TODO: Organize in either "objects" (nah) or modules (yay)
-// TODO: There's a lot of cloning going on. While "function", a lot of it is unnecessary.
+// TODO: There's a lot of cloning going on. While "functional", a lot of it is unnecessary.
 
 #[derive(Debug, Clone)]
 pub struct Job {
@@ -43,19 +42,20 @@ impl Job {
 }
 
 fn add_job(mut jobs: Vec<Job>, job: &Job) -> Vec<Job> {
-    if !jobs.contains(job) {
+    if !jobs.contains(&job) {
         jobs.push(job.clone());
     }
     jobs.clone()
 }
 
-fn add_job_before(mut jobs: Vec<Job>, new_job: &Job, other_job: &Job) -> Vec<Job> {
+fn add_job_before(jobs: Vec<Job>, new_job: &Job, other_job: &Job) -> Vec<Job> {
+    let mut new_jobs = jobs.clone();
     // This depends on our PartialEq checking only names, not deps - which doesn't feel quite
     // right.
     if let Some(i) = jobs.position_elem(other_job) {
-        jobs.insert(i, new_job.clone());
+        new_jobs.insert(i, new_job.clone());
     }
-    jobs.clone()
+    new_jobs
 }
 
 fn add_dep(mut jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'static str> {
@@ -68,7 +68,7 @@ fn add_dep(mut jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'stat
     } else {
         // Hmmm, composition anyone?
         jobs = add_job(jobs, &Job::new(*dep, None));
-        jobs = add_job(jobs, job);
+        jobs = add_job(jobs, &job);
         Ok(jobs)
     }
 }
