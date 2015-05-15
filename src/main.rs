@@ -41,11 +41,12 @@ impl Job {
     }
 }
 
-fn add_job(mut jobs: Vec<Job>, job: &Job) -> Vec<Job> {
-    if !jobs.contains(&job) {
-        jobs.push(job.clone());
+fn add_job(jobs: Vec<Job>, job: &Job) -> Vec<Job> {
+    let mut new_jobs = jobs.clone();
+    if !new_jobs.contains(&job) {
+        new_jobs.push(job.clone());
     }
-    jobs.clone()
+    new_jobs
 }
 
 fn add_job_before(jobs: Vec<Job>, new_job: &Job, other_job: &Job) -> Vec<Job> {
