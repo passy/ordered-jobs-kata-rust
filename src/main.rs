@@ -68,9 +68,8 @@ fn add_dep(jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'static s
         Ok(add_job_before(jobs, &Job::new(*dep, None), job))
     } else {
         // Hmmm, composition anyone?
-        let mut jobs_new = add_job(jobs, &Job::new(*dep, None));
-        jobs_new = add_job(jobs_new, &job);
-        Ok(jobs_new)
+        let jobs_new = add_job(jobs, &Job::new(*dep, None));
+        Ok(add_job(jobs_new, &job))
     }
 }
 
