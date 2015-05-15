@@ -3,7 +3,6 @@
 //! A simple, stupid, unoptimized version of the Ordered Jobs Kata.
 //! (Re)learning Rust at the same time. Back in my days we had ~["vectors", "like", "this"].
 
-// TODO: For functions operating on collections, make the collection the first (self-like) arg.
 // TODO: The split between dep and job is iffy. #unify
 // TODO: Organize in either "objects" (nah) or modules (yay)
 // TODO: There's a lot of cloning going on. While "function", a lot of it is unnecessary.
@@ -21,7 +20,6 @@ impl PartialEq for Job {
 }
 
 impl Job {
-    // XXX: Is this useful?
     pub fn new(name: char, dependency: Option<char>) -> Job {
         Job {
             name: name,
@@ -44,14 +42,14 @@ impl Job {
     }
 }
 
-fn add_job(job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+fn add_job(mut jobs: Vec<Job>, job: &Job) -> Vec<Job> {
     if !jobs.contains(job) {
         jobs.push(job.clone());
     }
     jobs.clone()
 }
 
-fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job> {
+fn add_job_before(mut jobs: Vec<Job>, new_job: &Job, other_job: &Job) -> Vec<Job> {
     // This depends on our PartialEq checking only names, not deps - which doesn't feel quite
     // right.
     if let Some(i) = jobs.position_elem(other_job) {
@@ -60,22 +58,22 @@ fn add_job_before(new_job: &Job, other_job: &Job, mut jobs: Vec<Job>) -> Vec<Job
     jobs.clone()
 }
 
-fn add_dep(job: &Job, dep: &char, mut jobs: Vec<Job>) -> Result<Vec<Job>, &'static str> {
+fn add_dep(mut jobs: Vec<Job>, job: &Job, dep: &char) -> Result<Vec<Job>, &'static str> {
     if job.name == *dep {
         Err("Dependency on self")
-    } else if job_name_exists(&job.name, &jobs) && job_name_exists(dep, &jobs) {
+    } else if job_name_exists(&jobs, &job.name) && job_name_exists(&jobs, dep) {
         Err("Circular job dependency")
-    } else if job_name_exists(&job.name, &jobs) {
-        Ok(add_job_before(&Job::new(*dep, None), job, jobs))
+    } else if job_name_exists(&jobs, &job.name) {
+        Ok(add_job_before(jobs, &Job::new(*dep, None), job))
     } else {
         // Hmmm, composition anyone?
-        jobs = add_job(&Job::new(*dep, None), jobs);
-        jobs = add_job(job, jobs);
+        jobs = add_job(jobs, &Job::new(*dep, None));
+        jobs = add_job(jobs, job);
         Ok(jobs)
     }
 }
 
-fn job_name_exists(name: &char, jobs: &Vec<Job>) -> bool {
+fn job_name_exists(jobs: &Vec<Job>, name: &char) -> bool {
     jobs.iter().any(|s| s.name == *name)
 }
 
@@ -90,8 +88,8 @@ impl JobList {
         let res = input.iter().fold(Ok(jobs), |acc, ref job| {
             acc.and_then(|jobs| {
                 match job.dependency {
-                    Some(dep) => add_dep(&job, &dep, jobs),
-                    None      => Ok(add_job(&job, jobs))
+                    Some(dep) => add_dep(jobs, &job, &dep),
+                    None      => Ok(add_job(jobs, &job))
                 }
             })
         });
